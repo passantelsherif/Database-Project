@@ -3,6 +3,8 @@ import java.awt.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
+// Omar Tohami
+
 public class EmployeeForm extends JFrame {
     private JTextField investigatorIdField, employeeIdField, activeCasesField, bdDateField, emailField, ageField, firstNameField, lastNameField;
     private JButton saveButton, exitButton;
