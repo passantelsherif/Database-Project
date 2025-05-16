@@ -1,5 +1,7 @@
 import java.sql.*;
 
+//Omar Tohami
+
 public class Investigator {
     private int activeCases;
     private String investigatorId;
