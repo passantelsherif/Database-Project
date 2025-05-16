@@ -1,0 +1,189 @@
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.sql.*;
+import java.util.ArrayList;
+
+public class CustomerForm extends JFrame {
+    private JTextField customerIdField, paymentIdField, reportIdField, firstNameField, lastNameField, dobField, ageField, streetField, cityField, buildField, phoneField;
+    private JButton saveButton, addPhoneButton, exitButton, editButton, deleteButton;
+    private DefaultListModel<String> phoneListModel;
+    private JTable customerTable;
+    private DefaultTableModel tableModel;
+
+    public CustomerForm() {
+        setTitle("Customer Management");
+        setSize(1000, 700);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+
+        // Input Panel
+        JPanel inputPanel = new JPanel(new GridLayout(15, 2));
+        customerIdField = new JTextField();
+        paymentIdField = new JTextField();
+        reportIdField = new JTextField();
+        firstNameField = new JTextField();
+        lastNameField = new JTextField();
+        dobField = new JTextField();
+        ageField = new JTextField();
+        streetField = new JTextField();
+        cityField = new JTextField();
+        buildField = new JTextField();
+        phoneField = new JTextField();
+        phoneListModel = new DefaultListModel<>();
+        JList<String> phoneList = new JList<>(phoneListModel);
+
+        addPhoneButton = new JButton("Add Phone");
+        saveButton = new JButton("Save Customer");
+        editButton = new JButton("Edit Customer");
+        deleteButton = new JButton("Delete Customer");
+        exitButton = new JButton("Exit");
+
+        inputPanel.add(new JLabel("Customer ID:"));
+        inputPanel.add(customerIdField);
+        inputPanel.add(new JLabel("Payment ID:"));
+        inputPanel.add(paymentIdField);
+        inputPanel.add(new JLabel("Report ID:"));
+        inputPanel.add(reportIdField);
+        inputPanel.add(new JLabel("First Name:"));
+        inputPanel.add(firstNameField);
+        inputPanel.add(new JLabel("Last Name:"));
+        inputPanel.add(lastNameField);
+        inputPanel.add(new JLabel("Date of Birth (yyyy-mm-dd):"));
+        inputPanel.add(dobField);
+        inputPanel.add(new JLabel("Age:"));
+        inputPanel.add(ageField);
+        inputPanel.add(new JLabel("Street Name:"));
+        inputPanel.add(streetField);
+        inputPanel.add(new JLabel("City Name:"));
+        inputPanel.add(cityField);
+        inputPanel.add(new JLabel("Building Number:"));
+        inputPanel.add(buildField);
+        inputPanel.add(new JLabel("Phone:"));
+        inputPanel.add(phoneField);
+        inputPanel.add(addPhoneButton);
+        inputPanel.add(new JScrollPane(phoneList));
+        inputPanel.add(saveButton);
+        inputPanel.add(editButton);
+        inputPanel.add(deleteButton);
+        inputPanel.add(exitButton);
+
+        // Table Panel
+        String[] columns = {"Customer ID", "Payment ID", "Report ID", "First Name", "Last Name", "DOB", "Age", "Street", "City", "Building"};
+        tableModel = new DefaultTableModel(columns, 0);
+        customerTable = new JTable(tableModel);
+        JScrollPane tableScrollPane = new JScrollPane(customerTable);
+
+        // Layout
+        setLayout(new BorderLayout());
+        add(inputPanel, BorderLayout.WEST);
+        add(tableScrollPane, BorderLayout.CENTER);
+
+        // Actions
+        addPhoneButton.addActionListener(e -> {
+            String phone = phoneField.getText().trim();
+            if (!phone.isEmpty()) {
+                phoneListModel.addElement(phone);
+                phoneField.setText("");
+            }
+        });
+
+        saveButton.addActionListener(e -> saveCustomer());
+        editButton.addActionListener(e -> editCustomer());
+        deleteButton.addActionListener(e -> deleteCustomer());
+        exitButton.addActionListener(e -> System.exit(0));
+
+        // Load initial data
+        loadCustomerData();
+
+        setVisible(true);
+    }
+
+    private void saveCustomer() {
+        try {
+            int customerId = Integer.parseInt(customerIdField.getText().trim());
+            int paymentId = Integer.parseInt(paymentIdField.getText().trim());
+            int reportId = Integer.parseInt(reportIdField.getText().trim());
+            String firstName = firstNameField.getText().trim();
+            String lastName = lastNameField.getText().trim();
+            Date dob = Date.valueOf(dobField.getText().trim());
+            int age = Integer.parseInt(ageField.getText().trim());
+            String street = streetField.getText().trim();
+            String city = cityField.getText().trim();
+            int building = Integer.parseInt(buildField.getText().trim());
+
+            ArrayList<String> phones = new ArrayList<>();
+            for (int i = 0; i < phoneListModel.size(); i++) {
+                phones.add(phoneListModel.getElementAt(i));
+            }
+
+            Customer customer = new Customer(customerId, paymentId, reportId, firstName, lastName, dob, age, street, city, building, phones);
+            if (customer.saveToDatabase()) {
+                JOptionPane.showMessageDialog(this, "Customer saved successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                loadCustomerData();
+            } else {
+                JOptionPane.showMessageDialog(this, "Error saving customer.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Invalid input: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void editCustomer() {
+        try {
+            int selectedRow = customerTable.getSelectedRow();
+            if (selectedRow < 0) {
+                JOptionPane.showMessageDialog(this, "Please select a customer to edit.", "Warning", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            int customerId = (int) tableModel.getValueAt(selectedRow, 0);
+            String firstName = firstNameField.getText().trim();
+            String lastName = lastNameField.getText().trim();
+
+            Customer customer = new Customer();
+            if (customer.editCustomerInDatabase(customerId, firstName, lastName)) {
+                JOptionPane.showMessageDialog(this, "Customer updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                loadCustomerData();
+            } else {
+                JOptionPane.showMessageDialog(this, "Error updating customer.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void deleteCustomer() {
+        try {
+            int selectedRow = customerTable.getSelectedRow();
+            if (selectedRow < 0) {
+                JOptionPane.showMessageDialog(this, "Please select a customer to delete.", "Warning", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            int customerId = (int) tableModel.getValueAt(selectedRow, 0);
+
+            Customer customer = new Customer();
+            if (customer.deleteCustomerFromDatabase(customerId)) {
+                JOptionPane.showMessageDialog(this, "Customer deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                loadCustomerData();
+            } else {
+                JOptionPane.showMessageDialog(this, "Error deleting customer.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void loadCustomerData() {
+        tableModel.setRowCount(0);
+
+        try (Connection conn = DriverManager.getConnection("jdbc:sqlserver://localhost:1433;databaseName=Carproject;encrypt=true;trustServerCertificate=true;", "SANDII", "sandy321");
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT * FROM Customer")) {
+
+            while (rs.next()) {
+                tableModel.addRow(new Object[]{
