@@ -1,6 +1,8 @@
 import javax.swing.*;
 import java.awt.*;
 
+//Omar Tohami
+
 public class InvestigatorForm extends JFrame {
     private JTextField activeCasesField, investigatorIdField;
     private JButton saveButton, exitButton;
