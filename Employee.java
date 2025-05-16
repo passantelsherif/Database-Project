@@ -1,6 +1,8 @@
 import java.sql.*;
 import java.time.LocalDate;
 
+// Omar Tohami
+
 public class Employee {
     private String investigatorId;
     private int employeeId;
