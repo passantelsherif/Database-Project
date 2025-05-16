@@ -1,0 +1,106 @@
+import java.sql.*;
+import java.util.ArrayList;
+
+public class Customer {
+    private int customerId;
+    private int paymentId;
+    private int reportId;
+    private String firstName;
+    private String lastName;
+    private Date dob;
+    private int age;
+    private String street;
+    private String city;
+    private int building;
+    private ArrayList<String> phones;
+
+    public Customer() {}
+
+    public Customer(int customerId, int paymentId, int reportId, String firstName, String lastName, Date dob, int age, String street, String city, int building, ArrayList<String> phones) {
+        this.customerId = customerId;
+        this.paymentId = paymentId;
+        this.reportId = reportId;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.dob = dob;
+        this.age = age;
+        this.street = street;
+        this.city = city;
+        this.building = building;
+        this.phones = phones;
+    }
+
+    public boolean saveToDatabase() {
+        try (Connection conn = DriverManager.getConnection("jdbc:sqlserver://localhost:1433;databaseName=Carproject;encrypt=true;trustServerCertificate=true;", "SANDII", "sandy321");
+             PreparedStatement stmt = conn.prepareStatement("INSERT INTO Customer (Customer_ID, Payment_ID, Report_ID, First_Name, Last_Name, Date_Of_Birth, Age, Street_Name, City_Name, Build_No) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+
+            stmt.setInt(1, customerId);
+            stmt.setInt(2, paymentId);
+            stmt.setInt(3, reportId);
+            stmt.setString(4, firstName);
+            stmt.setString(5, lastName);
+            stmt.setDate(6, dob);
+            stmt.setInt(7, age);
+            stmt.setString(8, street);
+            stmt.setString(9, city);
+            stmt.setInt(10, building);
+
+            int rowsAffected = stmt.executeUpdate();
+
+            savePhonesToDatabase(conn);
+
+            return rowsAffected > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private void savePhonesToDatabase(Connection conn) throws SQLException {
+        try (PreparedStatement stmt = conn.prepareStatement("INSERT INTO Customer_Phone (Customer_ID, Phone) VALUES (?, ?)")) {
+            for (String phone : phones) {
+                stmt.setInt(1, customerId);
+                stmt.setString(2, phone);
+                stmt.addBatch();
+            }
+            stmt.executeBatch();
+        }
+    }
+
+    public boolean editCustomerInDatabase(int customerId, String firstName, String lastName) {
+        try (Connection conn = DriverManager.getConnection("jdbc:sqlserver://localhost:1433;databaseName=Carproject;encrypt=true;trustServerCertificate=true;", "SANDII", "sandy321");
+             PreparedStatement stmt = conn.prepareStatement("UPDATE Customer SET First_Name = ?, Last_Name = ? WHERE Customer_ID = ?")) {
+
+            stmt.setString(1, firstName);
+            stmt.setString(2, lastName);
+            stmt.setInt(3, customerId);
+
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean deleteCustomerFromDatabase(int customerId) {
+        try (Connection conn = DriverManager.getConnection("jdbc:sqlserver://localhost:1433;databaseName=Carproject;encrypt=true;trustServerCertificate=true;", "SANDII", "sandy321");
+             PreparedStatement stmt1 = conn.prepareStatement("DELETE FROM Customer_Phone WHERE Customer_ID = ?");
+             PreparedStatement stmt2 = conn.prepareStatement("DELETE FROM Customer WHERE Customer_ID = ?")) {
+
+            stmt1.setInt(1, customerId);
+            stmt1.executeUpdate();
+
+            stmt2.setInt(1, customerId);
+            int rowsAffected = stmt2.executeUpdate();
+
+            return rowsAffected > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+}
