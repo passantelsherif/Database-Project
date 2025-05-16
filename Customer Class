@@ -1,0 +1,73 @@
+import java.sql.*;
+import java.util.List;
+
+public class Customer {
+    private int customerId;
+    private int paymentId;
+    private int reportId;
+    private String firstName;
+    private String lastName;
+    private java.sql.Date dateOfBirth;
+    private int age;
+    private String streetName;
+    private String cityName;
+    private int buildNo;
+    private List<String> phoneNumbers;
+
+    public Customer(int customerId, int paymentId, int reportId, String firstName, String lastName, 
+                    java.sql.Date dateOfBirth, int age, String streetName, String cityName, 
+                    int buildNo, List<String> phoneNumbers) {
+        this.customerId = customerId;
+        this.paymentId = paymentId;
+        this.reportId = reportId;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.dateOfBirth = dateOfBirth;
+        this.age = age;
+        this.streetName = streetName;
+        this.cityName = cityName;
+        this.buildNo = buildNo;
+        this.phoneNumbers = phoneNumbers;
+    }
+
+    public boolean saveToDatabase() {
+        String connectionUrl = "jdbc:sqlserver://localhost:1433;databaseName=Carproject;encrypt=true;trustServerCertificate=true;";
+        String user = "SANDII";
+        String password = "sandy321";
+
+        String customerInsertQuery = "INSERT INTO CUSTOMER (CUSTOMER_ID, PAYMENT_ID, REPORT_ID, FIRST_NAME, LAST_NAME, DATE_OF_BIRTH, AGE, STREET_NAME, CITY_NAME, BUILD_NO) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String phoneInsertQuery = "INSERT INTO CUSTOMER_PHONE (CUSTOMER_ID, PHONE) VALUES (?, ?)";
+
+        try (Connection connection = DriverManager.getConnection(connectionUrl, user, password);
+             PreparedStatement customerPs = connection.prepareStatement(customerInsertQuery);
+             PreparedStatement phonePs = connection.prepareStatement(phoneInsertQuery)) {
+
+            // Insert into CUSTOMER table
+            customerPs.setInt(1, customerId);
+            customerPs.setInt(2, paymentId);
+            customerPs.setInt(3, reportId);
+            customerPs.setString(4, firstName);
+            customerPs.setString(5, lastName);
+            customerPs.setDate(6, dateOfBirth);
+            customerPs.setInt(7, age);
+            customerPs.setString(8, streetName);
+            customerPs.setString(9, cityName);
+            customerPs.setInt(10, buildNo);
+
+            int rowsInserted = customerPs.executeUpdate();
+
+            // Insert into CUSTOMER_PHONE table
+            for (String phone : phoneNumbers) {
+                phonePs.setInt(1, customerId);
+                phonePs.setString(2, phone);
+                phonePs.executeUpdate();
+            }
+
+            return rowsInserted > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+}
