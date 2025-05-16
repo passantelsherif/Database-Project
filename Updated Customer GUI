@@ -187,3 +187,27 @@ public class CustomerForm extends JFrame {
 
             while (rs.next()) {
                 tableModel.addRow(new Object[]{
+                        rs.getInt("Customer_ID"),
+                        rs.getInt("Payment_ID"),
+                        rs.getInt("Report_ID"),
+                        rs.getString("First_Name"),
+                        rs.getString("Last_Name"),
+                        rs.getDate("Date_Of_Birth"),
+                        rs.getInt("Age"),
+                        rs.getString("Street_Name"),
+                        rs.getString("City_Name"),
+                        rs.getInt("Build_No")
+                });
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Failed to load customers.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(CustomerForm::new);
+    }
+}
+
