@@ -1,0 +1,109 @@
+import javax.swing.*;
+import java.awt.*;
+import java.util.ArrayList;
+import java.sql.Date;
+
+public class CustomerForm extends JFrame {
+    private JTextField customerIdField, paymentIdField, reportIdField, firstNameField, lastNameField, dobField, ageField, streetField, cityField, buildField, phoneField;
+    private JButton saveButton, addPhoneButton, exitButton;
+    private DefaultListModel<String> phoneListModel;
+
+    public CustomerForm() {
+        setTitle("Add New Customer");
+        setSize(500, 600);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new GridLayout(14, 1));
+
+        customerIdField = new JTextField();
+        paymentIdField = new JTextField();
+        reportIdField = new JTextField();
+        firstNameField = new JTextField();
+        lastNameField = new JTextField();
+        dobField = new JTextField();
+        ageField = new JTextField();
+        streetField = new JTextField();
+        cityField = new JTextField();
+        buildField = new JTextField();
+        phoneField = new JTextField();
+        phoneListModel = new DefaultListModel<>();
+
+        JList<String> phoneList = new JList<>(phoneListModel);
+        addPhoneButton = new JButton("Add Phone");
+        saveButton = new JButton("Save Customer");
+        exitButton = new JButton("Exit");
+
+        add(new JLabel("Customer ID:"));
+        add(customerIdField);
+        add(new JLabel("Payment ID:"));
+        add(paymentIdField);
+        add(new JLabel("Report ID:"));
+        add(reportIdField);
+        add(new JLabel("First Name:"));
+        add(firstNameField);
+        add(new JLabel("Last Name:"));
+        add(lastNameField);
+        add(new JLabel("Date of Birth (yyyy-mm-dd):"));
+        add(dobField);
+        add(new JLabel("Age:"));
+        add(ageField);
+        add(new JLabel("Street Name:"));
+        add(streetField);
+        add(new JLabel("City Name:"));
+        add(cityField);
+        add(new JLabel("Building Number:"));
+        add(buildField);
+        add(new JLabel("Phone:"));
+        add(phoneField);
+        add(addPhoneButton);
+        add(new JScrollPane(phoneList));
+        add(saveButton);
+        add(exitButton);
+
+        addPhoneButton.addActionListener(e -> {
+            String phone = phoneField.getText().trim();
+            if (!phone.isEmpty()) {
+                phoneListModel.addElement(phone);
+                phoneField.setText("");
+            }
+        });
+
+        saveButton.addActionListener(e -> {
+            try {
+                int customerId = Integer.parseInt(customerIdField.getText().trim());
+                int paymentId = Integer.parseInt(paymentIdField.getText().trim());
+                int reportId = Integer.parseInt(reportIdField.getText().trim());
+                String firstName = firstNameField.getText().trim();
+                String lastName = lastNameField.getText().trim();
+                Date dateOfBirth = Date.valueOf(dobField.getText().trim());
+                int age = Integer.parseInt(ageField.getText().trim());
+                String streetName = streetField.getText().trim();
+                String cityName = cityField.getText().trim();
+                int buildNo = Integer.parseInt(buildField.getText().trim());
+
+                ArrayList<String> phoneNumbers = new ArrayList<>();
+                for (int i = 0; i < phoneListModel.size(); i++) {
+                    phoneNumbers.add(phoneListModel.getElementAt(i));
+                }
+
+                Customer customer = new Customer(customerId, paymentId, reportId, firstName, lastName, dateOfBirth, age, streetName, cityName, buildNo, phoneNumbers);
+                boolean success = customer.saveToDatabase();
+
+                if (success) {
+                    JOptionPane.showMessageDialog(this, "Customer saved successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Error saving customer to database.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        exitButton.addActionListener(e -> System.exit(0));
+
+        setVisible(true);
+    }
+
+    public static void main(String[] args) {
+        new CustomerForm();
+    }
+}
